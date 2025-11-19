@@ -1,0 +1,33 @@
+project:
+  type: website
+  output-dir: docs
+  render: 
+    - EDA.qmd
+    - Modeling.qmd
+    
+website:
+  title: "Final Project"
+  navbar:
+    background: primary
+    left:
+      - href: EDA.qmd
+        text: EDA
+      - href: Modeling.qmd
+        text: Modeling
+  page-navigation: true
+  reader-mode: true
+  repo-url: https://github.com/alanapooler827/FinalProject
+  repo-actions: source
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+    grid:
+      sidebar-width: 300px
+
+callout-appearance: simple
+
+date: today
+date-format: iso
