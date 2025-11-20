@@ -1,27 +1,174 @@
 ---
-title: "EDA"
+title: "Exploratory Data Analysis"
 author: "Alana Pooler"
 date: "2025-11-19"
 format: html
 ---
 
-## Quarto
+## Introduction
 
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+## Data Import and Cleaning
 
-## Running Code
+Import libraries
 
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
-
-```{r}
-1 + 1
+```{r include=FALSE}
+library(tidyverse)
+library(ggplot2)
 ```
 
-You can add options to executable code like this
+Read in data
 
 ```{r}
-#| echo: false
-2 * 2
+df <- read_csv("diabetes_binary_health_indicators_BRFSS2015.csv")
+
+# view first few rows of data
+head(df)
 ```
 
-The `echo: false` option disables the printing of code (only output is displayed).
+Check for missing values
+
+No missing values in any column
+
+```{r}
+sum_na <- function(column){
+ sum(is.na(column))
+}
+
+df |> summarize(across(everything(), sum_na))
+```
+
+View column types
+
+All of the variables are numeric, but most of them are categorical variables encoded as numbers, so we will need to change those
+
+```{r}
+sapply(df, class)
+```
+
+Look at unique values of each variable to see which ones should be converted into factors
+
+```{r}
+sapply(df, table)
+```
+
+Convert columns to factors where appropriate
+
+```{r}
+# specify columns to skip
+skip_convert <- c('BMI', 'MentHlth', 'PhysHlth')
+
+# convert all other columns to factors
+df <- df |>
+  mutate(across(-all_of(skip_convert), as.factor))
+```
+
+Recode factor levels for better interpretability
+
+Recode variables that have levels of Yes/No
+
+```{r}
+# skip variables that are not factors or do not have levels of yes/no 
+skip_recode <- c('Diabetes_binary', 'BMI', 'GenHlth', 'MentHlth',
+                 'PhysHlth', 'Sex', 'Age', 'Education', 'Income')
+
+lvl_map <- c("0" = "No", "1" = "Yes")
+
+df <- df |>
+  mutate(across(-all_of(skip_recode), ~ recode(.x, !!!lvl_map)))
+```
+
+Recode remaining variables
+
+```{r}
+df <- df |>
+  mutate(
+    Diabetes_binary = fct_recode(
+      Diabetes_binary,
+      'None' = '0',
+      'Prediabetes' = '1'
+    ),
+    GenHlth = fct_recode(
+      GenHlth,
+      'Excellent' = '1',
+      'Very Good' = '2',
+      'Good' = '3',
+      'Fair' = '4',
+      'Poor' = '5'
+    ),
+    Sex = fct_recode(
+      Sex,
+      'Female' = '0',
+      'Male' = '1'
+    ),
+    Age = fct_recode(
+      Age,
+      '18-24' = '1',
+      '25-29' = '2',
+      '30-34' = '3',
+      '35-39' = '4',
+      '40-44' = '5',
+      '45-49' = '6',
+      '50-54' = '7',
+      '55-59' = '8',
+      '60-64' = '9',
+      '65-69' = '10',
+      '70-74' = '11',
+      '75-79' = '12',
+      '80+' = '13'
+      ),
+    Education = fct_recode(
+      Education,
+      'None' = '1',
+      'Elementary School' = '2',
+      'Some High School' = '3',
+      'High School' = '4',
+      'Some College' = '5',
+      'College Graduate' = '6',
+      ),
+    Income = fct_recode(
+      Income,
+      "Less than $10k" = "1",
+      "$10k to < $15k" = "2",
+      "$15k to < $20k" = "3",
+      "$20k to < $25k" = "4",
+      "$25k to < $35k" = "5",
+      "$35k to < $50k" = "6",
+      "$50k to < $75k" = "7",
+      "$75k or more" = "8"
+      ),
+    )
+```
+
+## Data Exploration
+
+Now we will look at some graphical and numerical summaries.
+
+Number of participants without diabetes vs with prediabetes
+
+The data is very imbalanced, most participants do not have prediabetes.
+
+```{r}
+ggplot(df, aes(x = Diabetes_binary)) +
+  geom_bar(fill = 'deepskyblue4') +
+  theme_minimal()
+```
+
+Two-way contingency tables for Diabetes_binary by all other categorical variables
+
+We can expect to that the proportions for participants without prediabetes will be higher since there is a much larger number of those participants overall.
+
+A pattern that sticks out is that the proportion of participants with prediabetes increase with age until ages 75+, when the proportion decreases.
+
+Another pattern is that participants without diabetes have higher proportions for exercising, having health care coverage, eating fruits and veggies, no heart issues, and no heavy alcohol consumption.
+
+```{r}
+factor_vars <- names(df)[sapply(df, is.factor)]
+# remove Diabetes_binary from the list so we don't two way table with itself
+factor_vars <- setdiff(factor_vars, "Diabetes_binary")
+
+for (v in factor_vars) {
+  cat("\n")
+  cat("Diabetes_binary by", v, "\n")
+  print(round(prop.table(table(df$Diabetes_binary, df[[v]])), 3))
+}
+```

@@ -24,8 +24,6 @@ format:
     theme: cosmo
     css: styles.css
     toc: true
-    grid:
-      sidebar-width: 300px
 
 callout-appearance: simple
 
