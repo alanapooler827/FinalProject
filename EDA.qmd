@@ -64,7 +64,7 @@ df <- df |>
 
 Recode factor levels for better interpretability
 
-Recode variables that have levels of Yes/No
+First recode all variables that have levels of Yes/No
 
 ```{r}
 # skip variables that are not factors or do not have levels of yes/no 
@@ -153,7 +153,7 @@ ggplot(df, aes(x = Diabetes_binary)) +
   theme_minimal()
 ```
 
-Two-way contingency tables for Diabetes_binary by all other categorical variables
+Two-way contingency tables for Diabetes Status by all other categorical variables
 
 We can expect to that the proportions for participants without prediabetes will be higher since there is a much larger number of those participants overall.
 
@@ -162,13 +162,43 @@ A pattern that sticks out is that the proportion of participants with prediabete
 Another pattern is that participants without diabetes have higher proportions for exercising, having health care coverage, eating fruits and veggies, no heart issues, and no heavy alcohol consumption.
 
 ```{r}
-factor_vars <- names(df)[sapply(df, is.factor)]
+cat_vars <- names(df)[sapply(df, is.factor)]
 # remove Diabetes_binary from the list so we don't two way table with itself
 factor_vars <- setdiff(factor_vars, "Diabetes_binary")
 
-for (v in factor_vars) {
+for (v in cat_vars) {
   cat("\n")
   cat("Diabetes_binary by", v, "\n")
   print(round(prop.table(table(df$Diabetes_binary, df[[v]])), 3))
 }
+```
+
+Box Plot of BMI vs Diabetes Status
+
+Not as much difference between the groups of diabetes status as I expected
+
+```{r}
+ggplot(df, aes(x = Diabetes_binary, y = BMI)) +
+  geom_boxplot(fill = "deepskyblue4") +
+  labs(x = "Diabetes Status",
+       y = "BMI",
+       title = "BMI Distribution by Diabetes Status")
+```
+
+Sex vs Diabetes status
+
+```{r}
+ggplot(df, aes(x = Diabetes_binary, fill = Sex)) +
+  geom_bar(position='dodge') +
+  labs(x = 'Diabetes Status',
+       title = 'Diabetes Status by Sex')
+```
+
+Diabetes Status grouped by General Health Rating
+
+```{r}
+ggplot(df, aes(x = Diabetes_binary, fill = GenHlth)) +
+  geom_bar(position='dodge') +
+  labs(x = 'Diabetes Status',
+       title = 'Diabetes Status by General Health')
 ```
