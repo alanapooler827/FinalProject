@@ -7,7 +7,13 @@ format: html
 
 ## Introduction
 
-## Data Import and Cleaning
+The data used in this project comes from the 2015 Behavioral Risk Factor Surveillance System report conducted by the CDC. View the data set on [Kaggle](https://www.kaggle.com/datasets/alexteboul/diabetes-health-indicators-dataset/?select=diabetes_binary_health_indicators_BRFSS2015.csv).
+
+The data set contains 22 variables. The variable 'Diabetes_binary' will be used as the response variable and has the values 0 for no diabetes and 1 for prediabetes or diabetes. This leaves 21 variables as predictor variables, which include information like gender, BMI, age, general health, and more.
+
+We will first explore the data and investigate the relationships between variables to get a sense of what variables could be useful for modeling. Then, we will build a models to predict the Diabetes_binary variable using a selection of the 21 predictor variables. We will be building a classification tree and a random forest model and evaluating the predictions from each to determine the best model.
+
+## Data Preparation
 
 Import libraries
 
@@ -85,7 +91,7 @@ df <- df |>
     Diabetes_binary = fct_recode(
       Diabetes_binary,
       'None' = '0',
-      'Prediabetes' = '1'
+      'Prediabetes/Diabetes' = '1'
     ),
     GenHlth = fct_recode(
       GenHlth,
@@ -143,9 +149,9 @@ df <- df |>
 
 Now we will look at some graphical and numerical summaries.
 
-Number of participants without diabetes vs with prediabetes
+Number of participants without diabetes vs with prediabetes/diabetes
 
-The data is very imbalanced, most participants do not have prediabetes.
+The data is very imbalanced, most participants do not have prediabetes/diabetes.
 
 ```{r}
 ggplot(df, aes(x = Diabetes_binary)) +
@@ -155,16 +161,16 @@ ggplot(df, aes(x = Diabetes_binary)) +
 
 Two-way contingency tables for Diabetes Status by all other categorical variables
 
-We can expect to that the proportions for participants without prediabetes will be higher since there is a much larger number of those participants overall.
+We can expect to that the proportions for participants without prediabetes/diabetes will be higher overall since there is a much larger number of those participants overall.
 
-A pattern that sticks out is that the proportion of participants with prediabetes increase with age until ages 75+, when the proportion decreases.
+A pattern that sticks out is that the proportion of participants with prediabetes/diabetes increase with age until ages 75+, when the proportion decreases.
 
-Another pattern is that participants without diabetes have higher proportions for exercising, having health care coverage, eating fruits and veggies, no heart issues, and no heavy alcohol consumption.
+Another pattern is that participants without diabetes have higher proportions for exercising, having health care coverage, eating fruits and veggies, no heart issues, and no heavy alcohol consumption. Some of these may be helpful predictor variables for modeling.
 
 ```{r}
 cat_vars <- names(df)[sapply(df, is.factor)]
 # remove Diabetes_binary from the list so we don't two way table with itself
-factor_vars <- setdiff(factor_vars, "Diabetes_binary")
+cat_vars <- setdiff(cat_vars, "Diabetes_binary")
 
 for (v in cat_vars) {
   cat("\n")
@@ -175,7 +181,7 @@ for (v in cat_vars) {
 
 Box Plot of BMI vs Diabetes Status
 
-Not as much difference between the groups of diabetes status as I expected
+Not as much difference between the groups of diabetes status as I expected. This may not be the most userful variable to use as a predictor in the models.
 
 ```{r}
 ggplot(df, aes(x = Diabetes_binary, y = BMI)) +
@@ -185,20 +191,24 @@ ggplot(df, aes(x = Diabetes_binary, y = BMI)) +
        title = "BMI Distribution by Diabetes Status")
 ```
 
-Sex vs Diabetes status
+Age vs Diabetes status
+
+In the no diabetes group, age 60-64 has the most subjects, whereas the prediabetes/diabetes group has the most subjects in the 65-69 age range.
 
 ```{r}
-ggplot(df, aes(x = Diabetes_binary, fill = Sex)) +
+ggplot(df, aes(x = Diabetes_binary, fill = Age)) +
   geom_bar(position='dodge') +
   labs(x = 'Diabetes Status',
        title = 'Diabetes Status by Sex')
 ```
 
-Diabetes Status grouped by General Health Rating
+Diabetes Status grouped by HighBP
+
+There is a clear relationship between HighBP and Diabetes_binary, with more people in the Prediabetes/Diabetes group having high blood pressure. This could be a useful predictor variable for modeling.
 
 ```{r}
-ggplot(df, aes(x = Diabetes_binary, fill = GenHlth)) +
+ggplot(df, aes(x = Diabetes_binary, fill = HighBP)) +
   geom_bar(position='dodge') +
   labs(x = 'Diabetes Status',
-       title = 'Diabetes Status by General Health')
+       title = 'Diabetes Status by High Blood Pressure (Yes/No)')
 ```
