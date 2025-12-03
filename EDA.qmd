@@ -27,7 +27,7 @@ Read in data
 
 ```{r}
 #| output: false
-df <- read_csv("data/diabetes_binary_health_indicators_BRFSS2015.csv")
+df <- read_csv('diabetes_binary_health_indicators_BRFSS2015.csv')
 ```
 
 ```{r}

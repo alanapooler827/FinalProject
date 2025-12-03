@@ -20,7 +20,7 @@ library(ggplot2)
 library(future)
 
 # import function to load and clean the data set
-source("data/load_clean_data.R")
+source('load_clean_data.R')
 
 # suppress scientific notation
 options(scipen=999)
@@ -138,8 +138,6 @@ Using several trees to make predictions instead of a single tree, as a classific
 
 Set `mtry = tune()` to find the optimal value for that parameter
 
-Using all 21 predictors results in better metrics than selecting a subset of predictors based on variable importance, so we will use the first recipe for this model
-
 ```{r}
 rf_spec <- 
   rand_forest(mtry = tune(),
@@ -149,7 +147,7 @@ rf_spec <-
   set_mode('classification')
 
 rf_wkf <- workflow() |>
-  add_recipe(rec) |>
+  add_recipe(rec2) |>
   add_model(rf_spec)
 ```
 
@@ -206,7 +204,7 @@ rf_final |>
 
 Compare metrics for each model
 
-The random forest model has a very slightly higher accuracy and lower log loss than the classification tree model, so random forest is crowned the winner!
+Both models have the same accuracy, but the random forest model has a slightly lower log loss than the classification tree model, so random forest is crowned the winner!
 
 ```{r}
 rbind(

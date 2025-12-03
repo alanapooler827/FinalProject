@@ -1,7 +1,7 @@
 library(tidyverse)
 
 load_clean_data <- function() {
-  df <- read_csv('data/diabetes_binary_health_indicators_BRFSS2015.csv')
+  df <- read_csv('diabetes_binary_health_indicators_BRFSS2015.csv')
   
   # columns to leave numeric
   skip_convert <- c('BMI', 'MentHlth', 'PhysHlth')
