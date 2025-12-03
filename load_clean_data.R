@@ -71,5 +71,7 @@ load_clean_data <- function() {
         '$50k to < $75k' = '7',
         '$75k or more' = '8'
       )
-    )
+    ) |>
+    # rename Diabetes_binary
+    rename('diabetes_status' = 'Diabetes_binary')
 }

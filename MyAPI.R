@@ -18,7 +18,7 @@ rf_spec <-
 
 # fit model to entire data set
 final_fit <- rf_spec |>
-  fit(Diabetes_binary ~ HighBP + GenHlth + HighChol +
+  fit(diabetes_status ~ HighBP + GenHlth + HighChol +
         Age + BMI + PhysHlth + DiffWalk,
       data = df)
 
@@ -31,7 +31,7 @@ get_default <- function(v) {
   }
 }
 
-defaults <- map(df |> select(-Diabetes_binary), get_default)
+defaults <- map(df |> select(-diabetes_status), get_default)
 
 # Endpoint 1: pred
 
@@ -91,7 +91,7 @@ function() {
 function() {
   preds <- predict(final_fit, df, type = "class")
   
-  conf_matrix_df <- data.frame(table(Predicted = preds$.pred_class, Actual = df$Diabetes_binary))
+  conf_matrix_df <- data.frame(table(Predicted = preds$.pred_class, Actual = df$diabetes_status))
   
   # convert to ggplot using autoplot
   p <- ggplot(conf_matrix_df, aes(x = Actual, y = Predicted, fill = Freq)) +

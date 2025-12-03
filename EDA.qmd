@@ -26,6 +26,7 @@ library(ggplot2)
 Read in data
 
 ```{r}
+#| warning: false
 #| output: false
 df <- read_csv('diabetes_binary_health_indicators_BRFSS2015.csv')
 ```
@@ -142,8 +143,11 @@ df <- df |>
       "$50k to < $75k" = "7",
       "$75k or more" = "8"
       ),
-    )
+    ) |>
+  # rename Diabetes_binary
+  rename('diabetes_status' = 'Diabetes_binary')
 ```
+
 
 # Data Exploration
 
@@ -154,14 +158,14 @@ Number of participants without diabetes vs with diabetes
 The data is very imbalanced, most participants do not have diabetes.
 
 ```{r}
-ggplot(df, aes(x = Diabetes_binary)) +
+ggplot(df, aes(x = diabetes_status)) +
   geom_bar(fill = 'deepskyblue4') +
   theme_minimal()
 ```
 
 Two-way contingency tables for Diabetes Status by all other categorical variables
 
-We want to identify a subset of variables that may be useful predictors for Diabetes_binary, and comparing diabetes prevalence across the levels of each variable can give us an initial idea.
+We want to identify a subset of variables that may be useful predictors for diabetes status, and comparing diabetes prevalence across the levels of each variable can give us an initial idea.
 
 We can expect to that the proportions for participants without diabetes will be higher overall since there is a much larger number of those participants overall.
 
@@ -171,13 +175,13 @@ Another pattern is that participants without diabetes have higher proportions fo
 
 ```{r}
 cat_vars <- names(df)[sapply(df, is.factor)]
-# remove Diabetes_binary from the list so we don't two way table with itself
-cat_vars <- setdiff(cat_vars, "Diabetes_binary")
+# remove diabetes_status from the list so we don't two way table with itself
+cat_vars <- setdiff(cat_vars, "diabetes_status")
 
 for (v in cat_vars) {
   cat("\n")
-  cat("Diabetes_binary by", v, "\n")
-  print(round(prop.table(table(df$Diabetes_binary, df[[v]])), 3))
+  cat("diabetes_status by", v, "\n")
+  print(round(prop.table(table(df$diabetes_status, df[[v]])), 3))
 }
 ```
 
@@ -186,7 +190,7 @@ Box Plot of BMI vs Diabetes Status
 Not as much difference between the groups of diabetes status as I expected. This may not be the most userful variable to use as a predictor in the models.
 
 ```{r}
-ggplot(df, aes(x = Diabetes_binary, y = BMI)) +
+ggplot(df, aes(x = diabetes_status, y = BMI)) +
   geom_boxplot(fill = "deepskyblue4") +
   labs(x = "Diabetes Status",
        y = "BMI",
@@ -198,7 +202,7 @@ Diabetes status by Age
 In the no diabetes group, age 60-64 has the most subjects, whereas the diabetes group has the most subjects in the 65-69 age range.
 
 ```{r}
-ggplot(df, aes(x = Diabetes_binary, fill = Age)) +
+ggplot(df, aes(x = diabetes_status, fill = Age)) +
   geom_bar(position='dodge') +
   labs(x = 'Diabetes Status',
        title = 'Diabetes Status by Sex')
@@ -209,7 +213,7 @@ Diabetes Status by General Health Rating
 In the no diabetes group, most subjects rated their general health as 'very good', whereas most of the subjects in the diabetes group rated their health as 'good; or 'fair'.
 
 ```{r}
-ggplot(df, aes(x = Diabetes_binary, fill = GenHlth)) +
+ggplot(df, aes(x = diabetes_status, fill = GenHlth)) +
   geom_bar(position='dodge') +
   labs(x = 'Diabetes Status',
        title = 'Diabetes Status by General Health Rating')
@@ -217,10 +221,10 @@ ggplot(df, aes(x = Diabetes_binary, fill = GenHlth)) +
 
 Diabetes Status grouped by High Blood Pressure
 
-There is a clear relationship between HighBP and Diabetes_binary, with more people in the Diabetes group having high blood pressure. This could be a useful predictor variable for modeling.
+There is a clear relationship between HighBP and diabetes status, with more people in the Diabetes group having high blood pressure. This could be a useful predictor variable for modeling.
 
 ```{r}
-ggplot(df, aes(x = Diabetes_binary, fill = HighBP)) +
+ggplot(df, aes(x = diabetes_status, fill = HighBP)) +
   geom_bar(position='dodge') +
   labs(x = 'Diabetes Status',
        title = 'Diabetes Status by High Blood Pressure (Yes/No)')
@@ -228,10 +232,10 @@ ggplot(df, aes(x = Diabetes_binary, fill = HighBP)) +
 
 Diabetes Status grouped by High Cholesterol
 
-This plot is almost identical to the Diabetes status by HighBP plot. The number of subjects with high cholesterol is much lower than the number of subjects without high cholesterol in the no diabetes group, and vice versa for the diabetes group.
+This plot is almost identical to the diabetes status by HighBP plot. The number of subjects with high cholesterol is much lower than the number of subjects without high cholesterol in the no diabetes group, and vice versa for the diabetes group.
 
 ```{r}
-ggplot(df, aes(x = Diabetes_binary, fill = HighChol)) +
+ggplot(df, aes(x = diabetes_status, fill = HighChol)) +
   geom_bar(position='dodge') +
   labs(x = 'Diabetes Status',
        title = 'Diabetes Status by High Cholesterol (Yes/No)')
@@ -252,4 +256,37 @@ ggplot(df, aes(x = MentHlth)) +
   labs(x = '# of Days of Poor Mental Health in Past 30 Days',
        title = 'Distribution of Physical Health')
 ```
+
+Diabetes Status vs Difficulty Walking
+
+There does not appear to be an obvious relationship between diabetes status and difficulty walking based on this plot. Both diabetes status groups have more subjects who do not have difficulty walking. 
+```{r}
+ggplot(df, aes(x = diabetes_status, fill = DiffWalk)) +
+  geom_bar(position='dodge') +
+  labs(x = 'Difficulty Walking/Climbing Stairs (Y/N)',
+       title = 'Diabetes Status by Difficulty Walking')
+```
+Education Level by Diabetes Status
+
+The no diabetes group has a clear upward trend in number of subjects as the education level increases, with most subjects holding a college degree. In the no diabetes group, few subjects have only an elementary school or high school education, but we do not see the same trend after that. The high school and above education levels all have roughly the same number of subjects with high school level having slightly more subjects than some college and college degree.
+```{r}
+ggplot(df, aes(x = Education, fill = Education)) +
+  geom_bar() +
+  facet_wrap(~ diabetes_status, nrow = 2) +
+  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank()) +
+  labs(x = 'Education Level',
+       title = 'Education Level by Diabetes Status')
+```
+Diabetes Status by Income
+
+Like education level, there is an increase in the number of subjects in each group of income level as it increases for the no diabetes group. The majority of subjects in this group have an income of over $75k. The no diabetes group has roughly the same number of subjects at each income level with a very slight increase in the number of subjects per group as income level increases.
+```{r}
+ggplot(df, aes(x = Income, fill = Income)) +
+  geom_bar() +
+  facet_wrap(~ diabetes_status, nrow = 2) +
+  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank()) +
+  labs(x = 'Income',
+       title = 'Diabetes Status by Education Level')
+```
+
 Click [here](Modeling.html) to Visit the Modeling Page

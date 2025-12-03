@@ -69,10 +69,10 @@ The subset of variables used in recipe 2 were chosen by fitting the model with a
 
 ```{r}
 # recipe using all 21 predictor variables
-rec <- recipe(Diabetes_binary ~ ., data = train)
+rec <- recipe(diabetes_status ~ ., data = train)
 
 # recipe using subset of predictor variables
-rec2 <- recipe(Diabetes_binary ~ HighBP + GenHlth + HighChol +
+rec2 <- recipe(diabetes_status ~ HighBP + GenHlth + HighChol +
                  Age + BMI + PhysHlth + DiffWalk,
                data = train)
 ```
@@ -81,7 +81,7 @@ rec2 <- recipe(Diabetes_binary ~ HighBP + GenHlth + HighChol +
 
 # Classification Tree
 
-A classification tree is a type of predictive model used when the response variable is categorical, like Diabetes_binary. It works by splitting the predictor space up into regions, making a prediction based on which bin an observation ends up in, and then using the most prevalent class in a bin as the prediction. Classification trees are flexible and easy to interpret.
+A classification tree is a type of predictive model used when the response variable is categorical, like diabetes status which has levels of yes or no. It works by splitting the predictor space up into regions, making a prediction based on which bin an observation ends up in, and then using the most prevalent class in a bin as the prediction. Classification trees are flexible and easy to interpret.
 
 **Create classification tree model instance and workflow**
 
